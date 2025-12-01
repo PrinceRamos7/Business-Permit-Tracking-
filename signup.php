@@ -11,23 +11,29 @@ require_once 'config/database.php';
 require_once 'modules/user.php';
 
 $error = '';
+$success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $database = new Database();
-    $db = $database->getConnection();
-    $user = new User($db);
-    
-    $user->username = $_POST['username'];
-    $user->password = $_POST['password'];
-    
-    if ($user->login()) {
-        $_SESSION['user_id'] = $user->user_id;
-        $_SESSION['username'] = $user->username;
-        $_SESSION['role'] = $user->role;
-        header("Location: dashboard.php");
-        exit();
+    if ($_POST['password'] !== $_POST['confirm_password']) {
+        $error = 'Passwords do not match!';
     } else {
-        $error = 'Invalid username or password';
+        $database = new Database();
+        $db = $database->getConnection();
+        $user = new User($db);
+        
+        $user->username = $_POST['username'];
+        $user->password = $_POST['password'];
+        $user->role = 'Staff';
+        
+        if ($user->usernameExists()) {
+            $error = 'Username already exists. Please choose another.';
+        } else {
+            if ($user->create()) {
+                $success = 'Account created successfully! You can now sign in.';
+            } else {
+                $error = 'Failed to create account. Please try again.';
+            }
+        }
     }
 }
 ?>
@@ -36,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>BPLO Ilagan - Sign In</title>
+    <title>BPLO Ilagan - Sign Up</title>
     <link rel="stylesheet" href="src/assets/vendors/mdi/css/materialdesignicons.min.css">
     <link rel="shortcut icon" href="src/assets/images/favicon.png" />
     <style>
@@ -69,7 +75,95 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             position: relative;
         }
 
-        /* Left Side - Form */
+        /* Left Side - Welcome */
+        .welcome-side {
+            background: #7eb5a6;
+            padding: 4rem 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-side::before {
+            content: '';
+            position: absolute;
+            right: -150px;
+            top: -100px;
+            width: 400px;
+            height: 800px;
+            background: white;
+            border-radius: 50%;
+            transform: rotate(15deg);
+        }
+
+        .welcome-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-circle {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo-circle img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+        }
+
+        .welcome-side h2 {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .welcome-side p {
+            font-size: 1.125rem;
+            opacity: 0.95;
+            margin-bottom: 3rem;
+            line-height: 1.6;
+            max-width: 350px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-signin {
+            padding: 1rem 3rem;
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-signin:hover {
+            background: white;
+            color: #7eb5a6;
+        }
+
+        /* Right Side - Form */
         .form-side {
             padding: 4rem 3.5rem;
             display: flex;
@@ -153,22 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #999;
         }
 
-        .forgot-password {
-            margin-bottom: 2rem;
-        }
-
-        .forgot-password a {
-            color: #666;
-            text-decoration: none;
-            font-size: 0.9375rem;
-            transition: color 0.3s ease;
-        }
-
-        .forgot-password a:hover {
-            color: #7eb5a6;
-        }
-
-        .btn-signin {
+        .btn-signup {
             padding: 1rem 3rem;
             background: #000;
             color: white;
@@ -180,9 +259,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
+            margin-top: 1rem;
         }
 
-        .btn-signin:hover {
+        .btn-signup:hover {
             background: #333;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -190,105 +270,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .alert {
             padding: 1rem;
-            background: #fee;
-            color: #c33;
             border-radius: 12px;
             margin-bottom: 1.5rem;
             font-size: 0.9375rem;
         }
 
-        /* Right Side - Welcome */
-        .welcome-side {
-            background: #7eb5a6;
-            padding: 4rem 3rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
+        .alert-danger {
+            background: #fee;
+            color: #c33;
         }
 
-        .welcome-side::before {
-            content: '';
-            position: absolute;
-            left: -150px;
-            top: -100px;
-            width: 400px;
-            height: 800px;
-            background: white;
-            border-radius: 50%;
-            transform: rotate(-15deg);
-        }
-
-        .welcome-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .logo-circle {
-            width: 120px;
-            height: 120px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .logo-circle img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-        }
-
-        .welcome-side h2 {
-            font-size: 4rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-        }
-
-        .welcome-side p {
-            font-size: 1.125rem;
-            opacity: 0.95;
-            margin-bottom: 3rem;
-            line-height: 1.6;
-            max-width: 350px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .btn-signup {
-            padding: 1rem 3rem;
-            background: transparent;
-            color: white;
-            border: 2px solid white;
-            border-radius: 50px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .btn-signup:hover {
-            background: white;
-            color: #7eb5a6;
+        .alert-success {
+            background: #efe;
+            color: #3c3;
         }
 
         .back-link {
             position: absolute;
             top: 2rem;
-            left: 2rem;
+            right: 2rem;
             color: #666;
             text-decoration: none;
             display: flex;
@@ -311,7 +311,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             .welcome-side {
-                order: -1;
                 padding: 3rem 2rem;
             }
 
@@ -353,37 +352,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="container">
-        <!-- Left Side - Form -->
+        <!-- Left Side - Welcome -->
+        <div class="welcome-side">
+            <div class="welcome-content">
+                <div class="logo-circle">
+                    <img src="src/assets/images/logos/bplo.jpg" alt="BPLO Logo">
+                </div>
+                <h2>HELLO!</h2>
+                <p>Already have an account? Sign in to access the admin dashboard.</p>
+                <a href="login.php" class="btn-signin">Sign In</a>
+            </div>
+        </div>
+
+        <!-- Right Side - Form -->
         <div class="form-side">
             <a href="index.php" class="back-link">
-                <i class="mdi mdi-arrow-left"></i>
-                Back to Home
+                <span>Back to Home</span>
+                <i class="mdi mdi-arrow-right"></i>
             </a>
 
             <div class="form-content">
-                <h1>Sign In</h1>
+                <h1>Sign Up</h1>
 
                 <div class="social-login">
-                    <a href="#" class="social-btn google" title="Sign in with Google">
+                    <a href="#" class="social-btn google" title="Sign up with Google">
                         <i class="mdi mdi-google"></i>
                     </a>
-                    <a href="#" class="social-btn linkedin" title="Sign in with LinkedIn">
+                    <a href="#" class="social-btn linkedin" title="Sign up with LinkedIn">
                         <i class="mdi mdi-linkedin"></i>
                     </a>
-                    <a href="#" class="social-btn github" title="Sign in with GitHub">
+                    <a href="#" class="social-btn github" title="Sign up with GitHub">
                         <i class="mdi mdi-github"></i>
                     </a>
-                    <a href="#" class="social-btn facebook" title="Sign in with Facebook">
+                    <a href="#" class="social-btn facebook" title="Sign up with Facebook">
                         <i class="mdi mdi-facebook"></i>
                     </a>
                 </div>
 
-                <div class="divider">Or use your email and password</div>
+                <div class="divider">Or use your email for registration</div>
 
                 <?php if ($error): ?>
-                <div class="alert">
+                <div class="alert alert-danger">
                     <i class="mdi mdi-alert-circle"></i>
                     <?php echo $error; ?>
+                </div>
+                <?php endif; ?>
+
+                <?php if ($success): ?>
+                <div class="alert alert-success">
+                    <i class="mdi mdi-check-circle"></i>
+                    <?php echo $success; ?>
                 </div>
                 <?php endif; ?>
 
@@ -393,7 +411,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             type="text" 
                             class="form-control" 
                             name="username" 
-                            placeholder="Email" 
+                            placeholder="Username" 
                             required
                             autofocus
                         >
@@ -406,27 +424,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             name="password" 
                             placeholder="Password" 
                             required
+                            minlength="6"
                         >
                     </div>
 
-                    <div class="forgot-password">
-                        <a href="reset_password.php">Forgot your Password?</a>
+                    <div class="form-group">
+                        <input 
+                            type="password" 
+                            class="form-control" 
+                            name="confirm_password" 
+                            placeholder="Confirm Password" 
+                            required
+                            minlength="6"
+                        >
                     </div>
 
-                    <button type="submit" class="btn-signin">Sign In</button>
+                    <button type="submit" class="btn-signup">Sign Up</button>
                 </form>
-            </div>
-        </div>
-
-        <!-- Right Side - Welcome -->
-        <div class="welcome-side">
-            <div class="welcome-content">
-                <div class="logo-circle">
-                    <img src="src/assets/images/logos/bplo.jpg" alt="BPLO Logo">
-                </div>
-                <h2>WELCOME!</h2>
-                <p>Enter your personal details to access all the site features.</p>
-                <a href="signup.php" class="btn-signup">Sign Up</a>
             </div>
         </div>
     </div>

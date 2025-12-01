@@ -53,7 +53,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 }
 
 $users = $user->readAll();
-?>
+$current_user = getCurrentUser();
+
+function renderUsers() {
+    global $users, $message, $message_type, $current_user;
+    ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -63,7 +67,7 @@ $users = $user->readAll();
     <link rel="stylesheet" href="src/assets/vendors/mdi/css/materialdesignicons.min.css">
     <link rel="stylesheet" href="src/assets/vendors/css/vendor.bundle.base.css">
     <link rel="stylesheet" href="src/assets/css/style.css">
-    <link rel="stylesheet" href="src/assets/css/custom-blue.css">
+    <link rel="stylesheet" href="src/assets/css/corona-dark.css">
 </head>
 <body>
     <div class="container-scroller">
@@ -95,11 +99,24 @@ $users = $user->readAll();
                             <div class="card">
                                 <div class="card-body">
                                     <h4 class="card-title">All Users</h4>
+                                    
+                                    <!-- Table Controls -->
+                                    <div class="table-header">
+                                        <div class="entries-control">
+                                            <span>Show</span>
+                                            <select><option value="10" selected>10</option><option value="25">25</option><option value="50">50</option></select>
+                                            <span>entries</span>
+                                        </div>
+                                        <div class="search-box">
+                                            <input type="text" placeholder="Search">
+                                        </div>
+                                    </div>
+                                    
                                     <div class="table-responsive">
-                                        <table class="table table-hover">
+                                        <table class="table">
                                             <thead>
                                                 <tr>
-                                                    <th>User ID</th>
+                                                    <th>#</th>
                                                     <th>Username</th>
                                                     <th>Role</th>
                                                     <th>Created At</th>
@@ -107,30 +124,36 @@ $users = $user->readAll();
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php while ($row = $users->fetch(PDO::FETCH_ASSOC)): ?>
+                                                <?php 
+                                                $counter = 1;
+                                                while ($row = $users->fetch(PDO::FETCH_ASSOC)): 
+                                                ?>
                                                 <tr>
-                                                    <td><?php echo $row['user_id']; ?></td>
+                                                    <td><?php echo $counter++; ?></td>
                                                     <td><?php echo htmlspecialchars($row['username']); ?></td>
+                                                    <td><span class="badge badge-<?php echo $row['role'] == 'Admin' ? 'danger' : 'info'; ?>"><?php echo $row['role']; ?></span></td>
+                                                    <td><?php echo date('Y/m/d', strtotime($row['created_at'])); ?></td>
                                                     <td>
-                                                        <span class="badge badge-<?php echo $row['role'] == 'Admin' ? 'danger' : 'info'; ?>">
-                                                            <?php echo $row['role']; ?>
-                                                        </span>
-                                                    </td>
-                                                    <td><?php echo date('M d, Y', strtotime($row['created_at'])); ?></td>
-                                                    <td>
-                                                        <button class="btn btn-sm btn-gradient-info" onclick='editUser(<?php echo json_encode($row); ?>)'>
-                                                            <i class="mdi mdi-pencil"></i>
-                                                        </button>
+                                                        <button class="btn btn-sm btn-gradient-info" onclick='editUser(<?php echo json_encode($row); ?>)'><i class="mdi mdi-pencil"></i></button>
                                                         <?php if ($row['user_id'] != $_SESSION['user_id']): ?>
-                                                        <button class="btn btn-sm btn-gradient-danger" onclick="deleteUser(<?php echo $row['user_id']; ?>, '<?php echo htmlspecialchars($row['username']); ?>')">
-                                                            <i class="mdi mdi-delete"></i>
-                                                        </button>
+                                                        <button class="btn btn-sm btn-gradient-danger" onclick="deleteUser(<?php echo $row['user_id']; ?>, '<?php echo htmlspecialchars($row['username']); ?>')"><i class="mdi mdi-delete"></i></button>
                                                         <?php endif; ?>
                                                     </td>
                                                 </tr>
                                                 <?php endwhile; ?>
                                             </tbody>
                                         </table>
+                                    </div>
+                                    
+                                    <!-- Pagination -->
+                                    <div class="pagination-wrapper">
+                                        <div class="pagination-info">Showing 1 to 10 entries</div>
+                                        <ul class="pagination">
+                                            <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
@@ -241,3 +264,9 @@ $users = $user->readAll();
     </script>
 </body>
 </html>
+
+<?php
+}
+
+renderUsers();
+?>

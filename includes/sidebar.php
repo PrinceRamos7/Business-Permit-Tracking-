@@ -2,13 +2,13 @@
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
 <nav class="sidebar sidebar-offcanvas" id="sidebar">
-    <div class="sidebar-brand-wrapper d-none d-lg-flex align-items-center justify-content-center fixed-top">
-        <a class="sidebar-brand brand-logo" href="dashboard.php" style="display: flex; align-items: center; gap: 10px;">
-            <img src="src/assets/images/logos/bplo.jpg" alt="BPLO Logo" class="logo-img" style="width: 40px; height: 40px; object-fit: contain;">
-            <span style="color: #ffffff; font-size: 18px; font-weight: 600;">BPLO ILAGAN</span>
+    <div class="sidebar-brand-wrapper d-none d-lg-flex align-items-center justify-content-start">
+        <a class="sidebar-brand brand-logo" href="dashboard.php">
+            <img src="src/assets/images/logos/bplo.jpg" alt="BPLO Logo">
+            <span>BPLO ILAGAN</span>
         </a>
         <a class="sidebar-brand brand-logo-mini" href="dashboard.php">
-            <img src="src/assets/images/logos/bplo.jpg" alt="BPLO Logo" class="logo-img" style="width: 35px; height: 35px; object-fit: contain;">
+            <img src="src/assets/images/logos/bplo.jpg" alt="BPLO Logo">
         </a>
     </div>
     <ul class="nav">
@@ -69,7 +69,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <span class="menu-title">Renewals</span>
             </a>
         </li>
+
         <?php if (isAdmin()): ?>
+        <li class="nav-item nav-category">
+            <span class="nav-link">System</span>
+        </li>
         <li class="nav-item menu-items <?php echo ($current_page == 'users.php') ? 'active' : ''; ?>">
             <a class="nav-link" href="users.php">
                 <span class="menu-icon">

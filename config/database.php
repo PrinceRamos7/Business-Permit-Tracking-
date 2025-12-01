@@ -6,7 +6,7 @@
 
 class Database {
     private $host = "localhost";
-    private $db_name = "bplo_ilagan";
+    private $db_name = "bplo_system";
     private $username = "root";
     private $password = "";
     public $conn;

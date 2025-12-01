@@ -42,7 +42,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
 $payments = $payment->readAll();
 $businesses = $business->readAll();
-?>
+$current_user = getCurrentUser();
+
+function renderPayments() {
+    global $payments, $businesses, $message, $message_type, $current_user;
+    ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -52,7 +56,7 @@ $businesses = $business->readAll();
     <link rel="stylesheet" href="src/assets/vendors/mdi/css/materialdesignicons.min.css">
     <link rel="stylesheet" href="src/assets/vendors/css/vendor.bundle.base.css">
     <link rel="stylesheet" href="src/assets/css/style.css">
-    <link rel="stylesheet" href="src/assets/css/custom-blue.css">
+    <link rel="stylesheet" href="src/assets/css/corona-dark.css">
 </head>
 <body>
     <div class="container-scroller">
@@ -84,10 +88,24 @@ $businesses = $business->readAll();
                             <div class="card">
                                 <div class="card-body">
                                     <h4 class="card-title">All Payments</h4>
+                                    
+                                    <!-- Table Controls -->
+                                    <div class="table-header">
+                                        <div class="entries-control">
+                                            <span>Show</span>
+                                            <select><option value="10" selected>10</option><option value="25">25</option><option value="50">50</option></select>
+                                            <span>entries</span>
+                                        </div>
+                                        <div class="search-box">
+                                            <input type="text" placeholder="Search">
+                                        </div>
+                                    </div>
+                                    
                                     <div class="table-responsive">
-                                        <table class="table table-hover">
+                                        <table class="table">
                                             <thead>
                                                 <tr>
+                                                    <th>#</th>
                                                     <th>OR Number</th>
                                                     <th>Business Name</th>
                                                     <th>Owner</th>
@@ -97,25 +115,36 @@ $businesses = $business->readAll();
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php while ($row = $payments->fetch(PDO::FETCH_ASSOC)): ?>
+                                                <?php 
+                                                $counter = 1;
+                                                while ($row = $payments->fetch(PDO::FETCH_ASSOC)): 
+                                                ?>
                                                 <tr>
+                                                    <td><?php echo $counter++; ?></td>
                                                     <td><?php echo htmlspecialchars($row['OR_number']); ?></td>
                                                     <td><?php echo htmlspecialchars($row['business_name']); ?></td>
                                                     <td><?php echo htmlspecialchars($row['owner_name']); ?></td>
                                                     <td>₱<?php echo number_format($row['amount'], 2); ?></td>
-                                                    <td><?php echo date('M d, Y', strtotime($row['payment_date'])); ?></td>
+                                                    <td><?php echo date('Y/m/d', strtotime($row['payment_date'])); ?></td>
                                                     <td>
-                                                        <button class="btn btn-sm btn-gradient-info" onclick='editPayment(<?php echo json_encode($row); ?>)'>
-                                                            <i class="mdi mdi-pencil"></i>
-                                                        </button>
-                                                        <button class="btn btn-sm btn-gradient-danger" onclick="deletePayment(<?php echo $row['payment_id']; ?>)">
-                                                            <i class="mdi mdi-delete"></i>
-                                                        </button>
+                                                        <button class="btn btn-sm btn-gradient-info" onclick='editPayment(<?php echo json_encode($row); ?>)'><i class="mdi mdi-pencil"></i></button>
+                                                        <button class="btn btn-sm btn-gradient-danger" onclick="deletePayment(<?php echo $row['payment_id']; ?>)"><i class="mdi mdi-delete"></i></button>
                                                     </td>
                                                 </tr>
                                                 <?php endwhile; ?>
                                             </tbody>
                                         </table>
+                                    </div>
+                                    
+                                    <!-- Pagination -->
+                                    <div class="pagination-wrapper">
+                                        <div class="pagination-info">Showing 1 to 10 entries</div>
+                                        <ul class="pagination">
+                                            <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
@@ -240,3 +269,9 @@ $businesses = $business->readAll();
     </script>
 </body>
 </html>
+
+<?php
+}
+
+renderPayments();
+?>
